@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #031326;
+    color: #FFFFFF;
+    overflow-x: hidden;
+  }
+}
+
+.font-mono-tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dark theme styling for Leaflet map tiles to match SmartBike Secure navy aesthetic */
+.smartbike-map .leaflet-tile-pane {
+  filter: brightness(0.68) invert(1) contrast(2.6) hue-rotate(195deg) saturate(0.65) brightness(0.75);
+}
+
+.smartbike-map .leaflet-container {
+  background: #05162B;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.smartbike-map .leaflet-control-attribution {
+  background: rgba(3, 19, 38, 0.75) !important;
+  color: rgba(148, 163, 184, 0.7) !important;
+  font-size: 10px !important;
+  backdrop-filter: blur(4px);
+}
+
+.smartbike-map .leaflet-control-attribution a {
+  color: #00D5FF !important;
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-90%);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(90%);
+    opacity: 0.2;
+  }
+}
+
+.animate-scanline {
+  animation: scanline 1.6s ease-in-out infinite;
+}
+
+@keyframes radar-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.75;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+.animate-radar {
+  animation: radar-ring 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
