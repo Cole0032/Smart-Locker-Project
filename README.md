@@ -54,13 +54,13 @@ The system is designed to help users control bicycle access, monitor its locatio
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/SmartBike-Secure.git
+git clone https://github.com/Cole0032/Smart-Locker-Project.git
 ```
 
 ### 2. Navigate to the project directory
 
 ```bash
-cd SmartBike-Secure
+cd Smart-Locker-Project
 ```
 
 ### 3. Install dependencies
