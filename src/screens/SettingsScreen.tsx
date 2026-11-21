@@ -13,6 +13,7 @@ import {
   Cpu,
   RotateCcw,
   Shield,
+  Server,
 } from 'lucide-react';
 import { BikeSystemState, LanguageCode, ScreenId, UserProfile } from '../types/smartbike';
 import { LANGUAGE_LABELS } from '../data/initialState';
@@ -47,7 +48,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [phone, setPhone] = useState(state.user.phone);
   const [bikeModel, setBikeModel] = useState(state.user.bikeModel);
   const [savedNotice, setSavedNotice] = useState(false);
-  const [activeModal, setActiveModal] = useState<'none' | 'device' | 'help'>('none');
+  const [activeModal, setActiveModal] = useState<'none' | 'device' | 'help' | 'backend'>('none');
+  const [apiResponseText, setApiResponseText] = useState<string>('');
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -354,7 +356,37 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
         </button>
 
-        {/* 8. Help & Support Row */}
+        {/* 8. Backend Server & ESP32 REST API Console */}
+        <button
+          type="button"
+          onClick={() => {
+            setActiveModal('backend');
+            fetch('/api/health')
+              .then((r) => r.json())
+              .then((data) => setApiResponseText(JSON.stringify(data, null, 2)))
+              .catch(() =>
+                setApiResponseText('{"status":"offline","note":"Using localStorage fallback"}')
+              );
+          }}
+          className="w-full text-left rounded-2xl bg-[#102B46]/85 hover:bg-[#143556] border border-[#00D5FF]/25 p-4 flex items-center justify-between gap-4 transition-colors cursor-pointer"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-[#00E676]/15 border border-[#00E676]/40 flex items-center justify-center text-[#00E676] shrink-0">
+              <Server className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-sm sm:text-base font-bold text-white">
+                Backend Server & ESP32 API Console
+              </div>
+              <div className="text-xs font-mono-tabular text-slate-300 mt-0.5">
+                server.ts · /api/state · /api/esp32/telemetry · data/smartbike-db.json
+              </div>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+        </button>
+
+        {/* 9. Help & Support Row */}
         <button
           type="button"
           onClick={() => setActiveModal('help')}
@@ -376,7 +408,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
         </button>
 
-        {/* 9. Logout Button (Matches Screen 10 bottom crimson button in Reference Image 3) */}
+        {/* 10. Logout Button (Matches Screen 10 bottom crimson button in Reference Image 3) */}
         <div className="pt-3">
           <button
             type="button"
@@ -388,6 +420,104 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Modal: Backend Server & ESP32 API Console */}
+      {activeModal === 'backend' && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl rounded-3xl bg-[#071D35] border border-[#00D5FF]/50 p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Server className="w-6 h-6 text-[#00E676]" />
+                <div>
+                  <h3 className="text-lg font-bold text-white">
+                    Node.js / Express Backend Server (server.ts)
+                  </h3>
+                  <p className="text-xs font-mono-tabular text-[#00D5FF]">
+                    Persistent JSON Database: /data/smartbike-db.json
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-mono-tabular">
+              <div className="p-2.5 rounded-xl bg-[#102B46] border border-white/10">
+                <span className="text-[#00E676] font-bold">GET</span> /api/health
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#102B46] border border-white/10">
+                <span className="text-[#00E676] font-bold">GET / PUT</span> /api/state
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#102B46] border border-white/10">
+                <span className="text-[#00D5FF] font-bold">POST</span> /api/bike/lock & /api/bike/unlock
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#102B46] border border-white/10">
+                <span className="text-[#FFB020] font-bold">POST</span> /api/esp32/telemetry
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  fetch('/api/health')
+                    .then((r) => r.json())
+                    .then((data) => setApiResponseText(JSON.stringify(data, null, 2)));
+                }}
+                className="px-3.5 py-2 rounded-xl bg-[#102B46] hover:bg-[#16385B] border border-[#00D5FF]/40 text-xs font-bold text-[#00D5FF] cursor-pointer"
+              >
+                Ping GET /api/health
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  fetch('/api/esp32/telemetry', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      batteryPct: Math.min(100, state.batteryPct + 1),
+                      solarCurrentMa: 245,
+                      dynamoCurrentMa: 410,
+                      lat: 31.2539,
+                      lng: 75.7035,
+                      label: 'Near LPU, Punjab (ESP32 Hardware Sync)',
+                    }),
+                  })
+                    .then((r) => r.json())
+                    .then((data) =>
+                      setApiResponseText(
+                        JSON.stringify(
+                          { ok: data.ok, commandsReturnedToEsp32: data.commands },
+                          null,
+                          2
+                        )
+                      )
+                    );
+                }}
+                className="px-3.5 py-2 rounded-xl bg-[#00E676]/20 hover:bg-[#00E676]/30 border border-[#00E676]/50 text-xs font-bold text-[#00E676] cursor-pointer"
+              >
+                Simulate ESP32 POST /api/esp32/telemetry
+              </button>
+            </div>
+
+            <div>
+              <span className="text-xs font-semibold text-slate-300 block mb-1">
+                Live Backend JSON Response:
+              </span>
+              <pre className="p-3.5 rounded-xl bg-[#031326] border border-[#00D5FF]/30 text-xs font-mono-tabular text-[#00E676] overflow-x-auto">
+                {apiResponseText || 'Click a button above to inspect live response...'}
+              </pre>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setActiveModal('none')}
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#00D5FF] to-[#087BFF] text-white font-bold text-sm cursor-pointer"
+            >
+              Close Backend Console
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modal: Device Information & ESP32 Hardware Architecture */}
       {activeModal === 'device' && (

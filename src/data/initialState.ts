@@ -1,4 +1,4 @@
-import { BikeSystemState, LanguageCode } from '../types/smartbike';
+import type { BikeSystemState, LanguageCode } from '../types/smartbike.ts';
 
 export const LANGUAGE_LABELS: Record<LanguageCode, { name: string; native: string }> = {
   en: { name: 'English', native: 'English' },

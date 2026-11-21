@@ -65,14 +65,48 @@ export default function App() {
     type: 'success' | 'warning' | 'danger';
   } | null>(null);
 
-  // Save state to localStorage on every change
+  const [backendSynced, setBackendSynced] = useState<boolean>(false);
+
+  // Load initial state from Express backend (/api/state) if available
+  useEffect(() => {
+    let mounted = true;
+    fetch('/api/state')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((serverState) => {
+        if (mounted && serverState && serverState.user) {
+          setState((prev) => ({
+            ...INITIAL_BIKE_STATE,
+            ...serverState,
+            isAuthenticated: prev.isAuthenticated || serverState.isAuthenticated,
+          }));
+          setBackendSynced(true);
+        }
+      })
+      .catch(() => {
+        // fallback to localStorage if offline
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Save state to localStorage and sync to Express backend (/api/state)
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
       // ignore storage quota errors
     }
-  }, [state]);
+    if (backendSynced) {
+      fetch('/api/state', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state),
+      }).catch(() => {
+        // ignore network errors
+      });
+    }
+  }, [state, backendSynced]);
 
   const showToast = (
     title: string,
